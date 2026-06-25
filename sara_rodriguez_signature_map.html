@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signatures by City</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --ink:#16252b; --ink-soft:#4a5e66; --line:#dde4e3;
+    --paper:#f5f3ec; --panel:#ffffff;
+    --teal:#0e7c7b; --teal-deep:#0a4f50; --gold:#c4892f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color:var(--ink); background:var(--paper);
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  }
+  header{
+    padding:18px 26px 16px; background:var(--panel);
+    border-bottom:1px solid var(--line); flex:0 0 auto;
+    display:flex; align-items:baseline; gap:22px; flex-wrap:wrap;
+  }
+  .eyebrow{font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--teal); font-weight:600;}
+  h1{font-size:20px; font-weight:700; letter-spacing:-.01em; line-height:1.1;}
+  h1 small{display:block; font-size:12.5px; font-weight:400; color:var(--ink-soft);
+    letter-spacing:0; margin-top:3px;}
+  .stats{display:flex; gap:26px; margin-left:auto;}
+  .stat{text-align:right; line-height:1;}
+  .stat .n{font-size:24px; font-weight:700; font-variant-numeric:tabular-nums;
+    color:var(--teal-deep);}
+  .stat .l{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-soft); margin-top:5px;}
+  main{flex:1 1 auto; display:flex; min-height:0;}
+  #map{flex:1 1 auto; background:#e9ece8;}
+  aside{
+    flex:0 0 290px; background:var(--panel); border-left:1px solid var(--line);
+    overflow-y:auto; padding:18px 20px;
+  }
+  aside h2{font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:600; margin-bottom:12px;}
+  .row{
+    display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:7px;
+    cursor:pointer; transition:background .12s;
+  }
+  .row:hover{background:#f0efe7;}
+  .rank{font-size:11px; color:var(--ink-soft); width:18px; font-variant-numeric:tabular-nums;
+    text-align:right; flex:0 0 auto;}
+  .bar-wrap{flex:1 1 auto; min-width:0;}
+  .name{font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis;}
+  .bar{height:4px; border-radius:2px; background:var(--teal); margin-top:4px;}
+  .cnt{font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums;
+    color:var(--teal-deep); flex:0 0 auto; width:38px; text-align:right;}
+  /* legend */
+  .legend{
+    background:rgba(255,255,255,.94); padding:11px 14px; border-radius:10px;
+    border:1px solid var(--line); box-shadow:0 2px 10px rgba(0,0,0,.06);
+    font-size:11px; color:var(--ink-soft); line-height:1;
+  }
+  .legend .lt{font-weight:600; color:var(--ink); letter-spacing:.08em;
+    text-transform:uppercase; margin-bottom:10px; font-size:10px;}
+  .legend svg{display:block;}
+  .leaflet-popup-content-wrapper{border-radius:9px;}
+  .leaflet-popup-content{margin:11px 14px; font-family:inherit;}
+  .pc-name{font-size:14px; font-weight:700; color:var(--ink);}
+  .pc-cnt{font-size:12.5px; color:var(--teal-deep); margin-top:2px;}
+  .pc-cnt b{font-size:15px;}
+  .foot{font-size:11px; color:var(--ink-soft); margin-top:16px; padding-top:14px;
+    border-top:1px solid var(--line); line-height:1.5;}
+  @media(max-width:760px){
+    aside{display:none}
+    .stats{gap:18px}
+    header{padding:14px 18px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="eyebrow">Petition Drive &middot; Wisconsin</div>
+    <h1>Where the signatures came from
+      <small>Sara Rodriguez &mdash; signatures by city</small></h1>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n" id="s-total">0</div><div class="l">Signatures</div></div>
+    <div class="stat"><div class="n" id="s-cities">0</div><div class="l">Cities</div></div>
+    <div class="stat"><div class="n" id="s-top">0</div><div class="l">Top city</div></div>
+  </div>
+</header>
+<main>
+  <div id="map"></div>
+  <aside>
+    <h2>Top cities</h2>
+    <div id="list"></div>
+    <div class="foot" id="foot"></div>
+  </aside>
+</main>
+<script>
+const DATA = {"points": [{"city": "Madison", "count": 755, "lat": 43.0731, "lon": -89.4012}, {"city": "Waukesha", "count": 267, "lat": 42.999304, "lon": -88.219559}, {"city": "Menomonee Falls", "count": 132, "lat": 43.1789, "lon": -88.117}, {"city": "Milwaukee", "count": 93, "lat": 43.0389, "lon": -87.9065}, {"city": "Sun Prairie", "count": 88, "lat": 43.186901, "lon": -89.222662}, {"city": "Green Bay", "count": 76, "lat": 44.5133, "lon": -88.0133}, {"city": "Middleton", "count": 68, "lat": 43.105196, "lon": -89.507258}, {"city": "Appleton", "count": 62, "lat": 44.277325, "lon": -88.397649}, {"city": "Racine", "count": 62, "lat": 42.726, "lon": -87.7825}, {"city": "Marinette", "count": 47, "lat": 45.087403, "lon": -87.669684}, {"city": "Dousman", "count": 46, "lat": 42.98506, "lon": -88.456754}, {"city": "Kenosha", "count": 45, "lat": 42.605228, "lon": -87.829945}, {"city": "Monona", "count": 44, "lat": 43.0613, "lon": -89.334}, {"city": "Brookfield", "count": 44, "lat": 43.062173, "lon": -88.098}, {"city": "Verona", "count": 43, "lat": 42.999913, "lon": -89.552247}, {"city": "Wauwatosa", "count": 41, "lat": 43.0495, "lon": -88.0076}, {"city": "Fitchburg", "count": 38, "lat": 42.9603, "lon": -89.4698}, {"city": "Superior", "count": 29, "lat": 46.701552, "lon": -92.091174}, {"city": "Eau Claire", "count": 28, "lat": 44.8113, "lon": -91.4985}, {"city": "Janesville", "count": 25, "lat": 42.6828, "lon": -89.0187}, {"city": "Mayville", "count": 25, "lat": 43.504496, "lon": -88.545084}, {"city": "New Berlin", "count": 22, "lat": 42.97397, "lon": -88.155274}, {"city": "Grand Chute", "count": 21, "lat": 44.2778, "lon": -88.4628}, {"city": "Bristol", "count": 21, "lat": 42.532525, "lon": -88.047779}, {"city": "West Bend", "count": 18, "lat": 43.425278, "lon": -88.183333}, {"city": "Fond du Lac", "count": 17, "lat": 43.770446, "lon": -88.429149}, {"city": "Watertown", "count": 17, "lat": 43.192971, "lon": -88.71851}, {"city": "Marshfield", "count": 17, "lat": 44.6688, "lon": -90.1716}, {"city": "DeForest", "count": 16, "lat": 43.2475, "lon": -89.3429}, {"city": "Rice Lake", "count": 16, "lat": 45.510466, "lon": -91.733544}, {"city": "Rhinelander", "count": 16, "lat": 45.646718, "lon": -89.409285}, {"city": "Oconomowoc", "count": 15, "lat": 43.109497, "lon": -88.486229}, {"city": "Brooklyn", "count": 15, "lat": 42.842327, "lon": -89.381814}, {"city": "Waunakee", "count": 15, "lat": 43.181828, "lon": -89.45317}, {"city": "Ripon", "count": 15, "lat": 43.845402, "lon": -88.842433}, {"city": "Hartland", "count": 14, "lat": 43.117153, "lon": -88.344572}, {"city": "Pewaukee", "count": 14, "lat": 43.078777, "lon": -88.272922}, {"city": "Windsor", "count": 14, "lat": 43.214121, "lon": -89.341469}, {"city": "Oregon", "count": 14, "lat": 42.929485, "lon": -89.387002}, {"city": "Muskego", "count": 14, "lat": 42.904651, "lon": -88.121411}, {"city": "Cottage Grove", "count": 13, "lat": 43.078405, "lon": -89.201692}, {"city": "Franklin", "count": 13, "lat": 42.901728, "lon": -88.008582}, {"city": "Oshkosh", "count": 12, "lat": 44.021962, "lon": -88.543635}, {"city": "McFarland", "count": 12, "lat": 43.0125, "lon": -89.2904}, {"city": "Germantown", "count": 12, "lat": 43.218871, "lon": -88.116508}, {"city": "West Allis", "count": 12, "lat": 43.0167, "lon": -88.007}, {"city": "Greenfield", "count": 12, "lat": 42.9614, "lon": -88.0126}, {"city": "Elm Grove", "count": 12, "lat": 43.047943, "lon": -88.085374}, {"city": "Fort Atkinson", "count": 12, "lat": 42.922902, "lon": -88.846689}, {"city": "Stoughton", "count": 11, "lat": 42.929007, "lon": -89.223989}, {"city": "Lake Mills", "count": 11, "lat": 43.081576, "lon": -88.913335}, {"city": "Peshtigo", "count": 11, "lat": 45.045778, "lon": -87.729795}, {"city": "Mount Pleasant", "count": 11, "lat": 42.7178, "lon": -87.8748}, {"city": "Danbury", "count": 11, "lat": 46.029681, "lon": -92.265995}, {"city": "La Crosse", "count": 10, "lat": 43.798938, "lon": -91.217494}, {"city": "Mount Horeb", "count": 10, "lat": 43.0083, "lon": -89.7393}, {"city": "Green Lake", "count": 10, "lat": 43.844383, "lon": -88.96847}, {"city": "Grafton", "count": 10, "lat": 43.323146, "lon": -87.952087}, {"city": "Manitowoc", "count": 9, "lat": 44.097122, "lon": -87.682303}, {"city": "De Pere", "count": 9, "lat": 44.438779, "lon": -88.080613}, {"city": "Portage", "count": 9, "lat": 43.550145, "lon": -89.47139}, {"city": "Scandinavia", "count": 9, "lat": 44.460436, "lon": -89.165042}, {"city": "Oak Creek", "count": 8, "lat": 42.88916, "lon": -87.902661}, {"city": "Phillips", "count": 8, "lat": 45.697463, "lon": -90.404131}, {"city": "Greendale", "count": 8, "lat": 42.937293, "lon": -87.994277}, {"city": "Whitewater", "count": 8, "lat": 42.827174, "lon": -88.742864}, {"city": "Mequon", "count": 8, "lat": 43.236389, "lon": -87.984444}, {"city": "Sturgeon Bay", "count": 7, "lat": 44.84384, "lon": -87.375311}, {"city": "Lake Geneva", "count": 7, "lat": 42.5917, "lon": -88.4334}, {"city": "River Falls", "count": 7, "lat": 44.85501, "lon": -92.631275}, {"city": "Neenah", "count": 7, "lat": 44.181094, "lon": -88.479201}, {"city": "Whitefish Bay", "count": 7, "lat": 43.1186, "lon": -87.9001}, {"city": "Caledonia", "count": 7, "lat": 42.829473, "lon": -87.92278}, {"city": "Spooner", "count": 7, "lat": 45.850468, "lon": -91.91555}, {"city": "Sheboygan", "count": 7, "lat": 43.740981, "lon": -87.724667}, {"city": "Monroe", "count": 6, "lat": 42.599076, "lon": -89.6403}, {"city": "Ashwaubenon", "count": 6, "lat": 44.4803, "lon": -88.089}, {"city": "Horicon", "count": 6, "lat": 43.446859, "lon": -88.631049}, {"city": "Burke", "count": 6, "lat": 43.1336, "lon": -89.2818}, {"city": "Oakland", "count": 6, "lat": 43.0686, "lon": -88.96}, {"city": "Sauk City", "count": 6, "lat": 43.268558, "lon": -89.741777}, {"city": "Cedarburg", "count": 6, "lat": 43.303413, "lon": -88.002867}, {"city": "Medford", "count": 6, "lat": 45.151185, "lon": -90.350306}, {"city": "Columbus", "count": 6, "lat": 43.331494, "lon": -89.027089}, {"city": "Prairie Du Chien", "count": 6, "lat": 43.042649, "lon": -91.119305}, {"city": "Friendship", "count": 5, "lat": 43.989629, "lon": -89.814875}, {"city": "Wausau", "count": 5, "lat": 44.963433, "lon": -89.633955}, {"city": "Deerfield", "count": 5, "lat": 43.057106, "lon": -89.086199}, {"city": "Melrose", "count": 5, "lat": 44.138156, "lon": -91.044463}, {"city": "Elkhorn", "count": 5, "lat": 42.700928, "lon": -88.546209}, {"city": "Menomonie", "count": 5, "lat": 44.87182, "lon": -91.92651}, {"city": "Mukwonago", "count": 5, "lat": 42.882054, "lon": -88.345116}, {"city": "Delafield", "count": 5, "lat": 43.050019, "lon": -88.397248}, {"city": "Pleasant Springs", "count": 5, "lat": 42.9686, "lon": -89.2129}, {"city": "Greenville", "count": 4, "lat": 44.299747, "lon": -88.569579}, {"city": "Edgerton", "count": 4, "lat": 42.838605, "lon": -89.064157}, {"city": "Plover", "count": 4, "lat": 44.450673, "lon": -89.542805}, {"city": "Merrill", "count": 4, "lat": 45.180924, "lon": -89.690696}, {"city": "Bellevue", "count": 4, "lat": 44.4636, "lon": -87.974}, {"city": "Jefferson", "count": 4, "lat": 43.000557, "lon": -88.807765}, {"city": "Hobart", "count": 4, "lat": 44.5097, "lon": -88.1626}, {"city": "Milton", "count": 4, "lat": 42.779087, "lon": -88.953087}, {"city": "Two Rivers", "count": 4, "lat": 44.166008, "lon": -87.585504}, {"city": "Hudson", "count": 4, "lat": 44.984187, "lon": -92.727062}, {"city": "Westport", "count": 4, "lat": 43.1686, "lon": -89.4179}, {"city": "Belleville", "count": 4, "lat": 42.866906, "lon": -89.53773}, {"city": "Pleasant Prairie", "count": 4, "lat": 42.5277, "lon": -87.8857}, {"city": "Beloit", "count": 4, "lat": 42.522871, "lon": -89.039897}, {"city": "Waupun", "count": 4, "lat": 43.632441, "lon": -88.737253}, {"city": "Hartford", "count": 4, "lat": 43.315749, "lon": -88.370727}, {"city": "Cross Plains", "count": 4, "lat": 43.113214, "lon": -89.639665}, {"city": "Park Falls", "count": 4, "lat": 45.936345, "lon": -90.424648}, {"city": "Brown Deer", "count": 4, "lat": 43.1761, "lon": -87.969}, {"city": "Cambria", "count": 4, "lat": 43.57239, "lon": -89.115614}, {"city": "Wescott", "count": 4, "lat": 44.81, "lon": -88.58}, {"city": "Fox Point", "count": 4, "lat": 43.1542, "lon": -87.8979}, {"city": "Big Bend", "count": 4, "lat": 42.888463, "lon": -88.212182}, {"city": "Pardeeville", "count": 4, "lat": 43.533975, "lon": -89.326514}, {"city": "Glendale", "count": 4, "lat": 43.1289, "lon": -87.9279}, {"city": "Mauston", "count": 4, "lat": 43.793383, "lon": -90.064085}, {"city": "Thiensville", "count": 3, "lat": 43.225145, "lon": -87.959357}, {"city": "New Glarus", "count": 3, "lat": 42.814344, "lon": -89.643666}, {"city": "Shorewood", "count": 3, "lat": 43.0903, "lon": -87.8873}, {"city": "Colgate", "count": 3, "lat": 43.199767, "lon": -88.240614}, {"city": "West Milwaukee", "count": 3, "lat": 43.0086, "lon": -87.9576}, {"city": "North Fond Du Lac", "count": 3, "lat": 43.8016, "lon": -88.4818}, {"city": "Slinger", "count": 3, "lat": 43.332211, "lon": -88.282377}, {"city": "Sturtevant", "count": 3, "lat": 42.69673, "lon": -87.903082}, {"city": "Barton", "count": 3, "lat": 43.43, "lon": -88.18}, {"city": "Sevastopol", "count": 3, "lat": 44.85, "lon": -87.32}, {"city": "Black Creek", "count": 3, "lat": 44.485595, "lon": -88.444776}, {"city": "Menasha", "count": 3, "lat": 44.211164, "lon": -88.417536}, {"city": "Siren", "count": 3, "lat": 45.78214, "lon": -92.389151}, {"city": "Eureka", "count": 3, "lat": 44.004444, "lon": -88.841667}, {"city": "Wautoma", "count": 3, "lat": 44.065576, "lon": -89.266551}, {"city": "Clyman", "count": 3, "lat": 43.311389, "lon": -88.72}, {"city": "Newbold", "count": 3, "lat": 45.7, "lon": -89.6}, {"city": "Suamico", "count": 3, "lat": 44.631944, "lon": -88.039167}, {"city": "Clayton", "count": 3, "lat": 45.306297, "lon": -92.139462}, {"city": "Tainter", "count": 3, "lat": 44.95, "lon": -91.85}, {"city": "Somers", "count": 3, "lat": 42.640278, "lon": -87.910278}, {"city": "Liberty Grove", "count": 3, "lat": 45.25, "lon": -87.05}, {"city": "Cloverland", "count": 3, "lat": 44.8, "lon": -87.2}, {"city": "Leon", "count": 3, "lat": 43.9, "lon": -90.6}, {"city": "Algoma", "count": 3, "lat": 44.610051, "lon": -87.457792}, {"city": "Iola", "count": 3, "lat": 44.532183, "lon": -89.137311}, {"city": "Kimberly", "count": 2, "lat": 44.27008, "lon": -88.338374}, {"city": "Harrison", "count": 2, "lat": 44.2519, "lon": -88.3326}, {"city": "Reedsburg", "count": 2, "lat": 43.5325, "lon": -90.0025}, {"city": "Prairie Du Sac", "count": 2, "lat": 43.295631, "lon": -89.745233}, {"city": "Merton", "count": 2, "lat": 43.146667, "lon": -88.306667}, {"city": "Lannon", "count": 2, "lat": 43.149651, "lon": -88.163863}, {"city": "Richfield", "count": 2, "lat": 43.273925, "lon": -88.215467}, {"city": "Allouez", "count": 2, "lat": 44.4844, "lon": -87.9923}, {"city": "Mt Sterling", "count": 2, "lat": 43.31, "lon": -90.92}, {"city": "Turtle", "count": 2, "lat": 42.55, "lon": -88.95}, {"city": "Dane", "count": 2, "lat": 43.242414, "lon": -89.51174}, {"city": "River Hills", "count": 2, "lat": 43.1675, "lon": -87.9229}, {"city": "Stevens Point", "count": 2, "lat": 44.521221, "lon": -89.558764}, {"city": "Maribel", "count": 2, "lat": 44.285151, "lon": -87.805482}, {"city": "Trenton", "count": 2, "lat": 43.45, "lon": -88.1}, {"city": "Salem Lakes", "count": 2, "lat": 42.5547, "lon": -88.1115}, {"city": "Darien", "count": 2, "lat": 42.6435, "lon": -88.714217}, {"city": "Palmyra", "count": 2, "lat": 42.879263, "lon": -88.590255}, {"city": "Amery", "count": 2, "lat": 45.325238, "lon": -92.361527}, {"city": "Okauchee", "count": 2, "lat": 43.113011, "lon": -88.432287}, {"city": "Spring Green", "count": 2, "lat": 43.18835, "lon": -90.067608}, {"city": "Burlington", "count": 2, "lat": 42.666034, "lon": -88.274886}, {"city": "Union Grove", "count": 2, "lat": 42.689643, "lon": -88.039004}, {"city": "Maple Bluff", "count": 2, "lat": 43.1108, "lon": -89.3624}, {"city": "Ridgeway", "count": 2, "lat": 43.007654, "lon": -89.988946}, {"city": "Kekoskee", "count": 2, "lat": 43.47, "lon": -88.65}, {"city": "Lebanon", "count": 2, "lat": 43.255278, "lon": -88.626667}, {"city": "Worcester", "count": 2, "lat": 45.48, "lon": -90.6}, {"city": "Washburn", "count": 2, "lat": 46.680595, "lon": -90.909516}, {"city": "Osceola", "count": 2, "lat": 45.321757, "lon": -92.697108}, {"city": "Fontana", "count": 2, "lat": 42.542928, "lon": -88.568424}, {"city": "Trego", "count": 2, "lat": 45.951556, "lon": -91.858051}, {"city": "Freedom", "count": 2, "lat": 44.386389, "lon": -88.288611}, {"city": "Fox Crossing", "count": 2, "lat": 44.2, "lon": -88.45}, {"city": "Cambridge", "count": 2, "lat": 42.99176, "lon": -89.020901}, {"city": "Jackson", "count": 2, "lat": 43.325243, "lon": -88.162592}, {"city": "Chippewa Falls", "count": 2, "lat": 44.932202, "lon": -91.384376}, {"city": "Holmen", "count": 2, "lat": 43.976125, "lon": -91.2497}, {"city": "Coleman", "count": 2, "lat": 45.072157, "lon": -88.058667}, {"city": "Bayside", "count": 2, "lat": 43.1875, "lon": -87.9007}, {"city": "Evansville", "count": 2, "lat": 42.773216, "lon": -89.287712}, {"city": "Lodi", "count": 2, "lat": 43.326964, "lon": -89.555421}, {"city": "Mondovi", "count": 2, "lat": 44.609853, "lon": -91.669576}, {"city": "Moscow", "count": 2, "lat": 42.9, "lon": -89.95}, {"city": "Blanchardville", "count": 2, "lat": 42.806186, "lon": -89.855511}, {"city": "Weston", "count": 2, "lat": 44.8908, "lon": -89.546}, {"city": "Porterfield", "count": 2, "lat": 45.193399, "lon": -87.806243}, {"city": "Beldenville", "count": 2, "lat": 44.7721, "lon": -92.437202}, {"city": "Sussex", "count": 2, "lat": 43.144059, "lon": -88.227064}, {"city": "Pelican", "count": 2, "lat": 45.62, "lon": -89.35}, {"city": "Williams Bay", "count": 2, "lat": 42.576678, "lon": -88.543089}, {"city": "Shiocton", "count": 2, "lat": 44.497202, "lon": -88.556236}, {"city": "Shorewood Hills", "count": 2, "lat": 43.0758, "lon": -89.449}, {"city": "Wisconsin Rapids", "count": 2, "lat": 44.375803, "lon": -89.806229}, {"city": "Marion", "count": 2, "lat": 44.679414, "lon": -88.876706}, {"city": "St. Croix Falls", "count": 2, "lat": 45.4097, "lon": -92.6391}, {"city": "Lake Delton", "count": 2, "lat": 43.601111, "lon": -89.793611}, {"city": "Saukville", "count": 2, "lat": 43.391265, "lon": -87.956765}, {"city": "Webster", "count": 2, "lat": 45.874001, "lon": -92.322722}, {"city": "Springwater", "count": 2, "lat": 44.05, "lon": -89.18}, {"city": "Beaver Dam", "count": 2, "lat": 43.461574, "lon": -88.840681}, {"city": "Viroqua", "count": 2, "lat": 43.54419, "lon": -90.893865}, {"city": "Eastman", "count": 2, "lat": 43.19592, "lon": -91.01927}, {"city": "Cameron", "count": 2, "lat": 45.403836, "lon": -91.730992}, {"city": "Adams", "count": 1, "lat": 43.896688, "lon": -89.821869}, {"city": "Tomahawk", "count": 1, "lat": 45.496308, "lon": -89.727269}, {"city": "South Milwaukee", "count": 1, "lat": 42.910468, "lon": -87.864626}, {"city": "Denmark", "count": 1, "lat": 44.359392, "lon": -87.827036}, {"city": "Twin Lakes", "count": 1, "lat": 42.523173, "lon": -88.257318}, {"city": "East Troy", "count": 1, "lat": 42.803531, "lon": -88.409215}, {"city": "Three Lakes", "count": 1, "lat": 45.804633, "lon": -89.132792}, {"city": "Oneida", "count": 1, "lat": 44.516641, "lon": -88.185851}, {"city": "Kaukauna", "count": 1, "lat": 44.29561, "lon": -88.271692}, {"city": "Walworth", "count": 1, "lat": 42.535005, "lon": -88.602738}, {"city": "Johnson Creek", "count": 1, "lat": 43.075051, "lon": -88.783602}, {"city": "Elcho", "count": 1, "lat": 45.440906, "lon": -89.15157}, {"city": "Barneveld", "count": 1, "lat": 43.015797, "lon": -89.904229}, {"city": "Mazomanie", "count": 1, "lat": 43.184746, "lon": -89.763616}, {"city": "Muscoda", "count": 1, "lat": 43.207375, "lon": -90.456998}, {"city": "Marquette", "count": 1, "lat": 43.745886, "lon": -89.139654}, {"city": "Kewaskum", "count": 1, "lat": 43.521446, "lon": -88.19253}, {"city": "Blue River", "count": 1, "lat": 43.236567, "lon": -90.587312}, {"city": "Allenton", "count": 1, "lat": 43.468065, "lon": -88.353901}, {"city": "Butternut", "count": 1, "lat": 46.018358, "lon": -90.482114}, {"city": "Orfordville", "count": 1, "lat": 42.627766, "lon": -89.253292}, {"city": "Balsam Lake", "count": 1, "lat": 45.458845, "lon": -92.414954}, {"city": "Colby", "count": 1, "lat": 44.911651, "lon": -90.314432}, {"city": "Marshall", "count": 1, "lat": 43.163639, "lon": -89.075331}, {"city": "Reedsville", "count": 1, "lat": 44.157566, "lon": -87.966028}, {"city": "Casco", "count": 1, "lat": 44.58328, "lon": -87.623122}, {"city": "New Richmond", "count": 1, "lat": 45.159819, "lon": -92.551333}, {"city": "Seneca", "count": 1, "lat": 43.265, "lon": -90.958333}, {"city": "Berlin", "count": 1, "lat": 43.976936, "lon": -88.949009}, {"city": "Pine River", "count": 1, "lat": 44.160393, "lon": -89.040415}, {"city": "Amberg", "count": 1, "lat": 45.498878, "lon": -87.964256}, {"city": "Luxemburg", "count": 1, "lat": 44.550612, "lon": -87.715606}, {"city": "Cudahy", "count": 1, "lat": 42.948976, "lon": -87.861983}, {"city": "Albany", "count": 1, "lat": 42.715535, "lon": -89.435695}, {"city": "Nashotah", "count": 1, "lat": 43.111791, "lon": -88.408913}, {"city": "Plain", "count": 1, "lat": 43.292693, "lon": -90.055825}, {"city": "West Salem", "count": 1, "lat": 43.906253, "lon": -91.089311}, {"city": "Eagle", "count": 1, "lat": 42.880942, "lon": -88.46742}, {"city": "Custer", "count": 1, "lat": 44.56622, "lon": -89.415275}, {"city": "Delavan", "count": 1, "lat": 42.622715, "lon": -88.627717}, {"city": "Bonduel", "count": 1, "lat": 44.73794, "lon": -88.439026}, {"city": "Pulaski", "count": 1, "lat": 44.66112, "lon": -88.263447}, {"city": "Egg Harbor", "count": 1, "lat": 45.010039, "lon": -87.280521}, {"city": "Wales", "count": 1, "lat": 43.008787, "lon": -88.378742}, {"city": "Frederic", "count": 1, "lat": 45.665314, "lon": -92.426482}, {"city": "Plymouth", "count": 1, "lat": 43.75258, "lon": -87.977906}, {"city": "Rio", "count": 1, "lat": 43.423053, "lon": -89.235362}, {"city": "Poynette", "count": 1, "lat": 43.401342, "lon": -89.418857}, {"city": "Mosinee", "count": 1, "lat": 44.799736, "lon": -89.684491}, {"city": "Milltown", "count": 1, "lat": 45.527082, "lon": -92.501739}, {"city": "Saint Croix Falls", "count": 1, "lat": 45.413215, "lon": -92.638371}, {"city": "Sparta", "count": 1, "lat": 43.954045, "lon": -90.814566}, {"city": "Dodgeville", "count": 1, "lat": 42.969779, "lon": -90.140433}, {"city": "Hancock", "count": 1, "lat": 44.129743, "lon": -89.534448}, {"city": "Redgranite", "count": 1, "lat": 44.04381, "lon": -89.098125}, {"city": "Wild Rose", "count": 1, "lat": 44.183433, "lon": -89.195252}, {"city": "Blue Mounds", "count": 1, "lat": 43.004964, "lon": -89.834455}, {"city": "Eagle River", "count": 1, "lat": 45.916084, "lon": -89.253058}, {"city": "Gays Mills", "count": 1, "lat": 43.293639, "lon": -90.867636}, {"city": "Pell Lake", "count": 1, "lat": 42.538056, "lon": -88.350833}, {"city": "Barron", "count": 1, "lat": 45.400535, "lon": -91.84996}, {"city": "Fox Lake", "count": 1, "lat": 43.581507, "lon": -88.904081}, {"city": "Brussels", "count": 1, "lat": 44.747558, "lon": -87.62252}, {"city": "Wyocena", "count": 1, "lat": 43.495833, "lon": -89.308333}, {"city": "Packwaukee", "count": 1, "lat": 43.763333, "lon": -89.458333}, {"city": "Black River Falls", "count": 1, "lat": 44.292101, "lon": -90.847952}, {"city": "Boscobel", "count": 1, "lat": 43.139327, "lon": -90.706101}, {"city": "Maiden Rock", "count": 1, "lat": 44.608599, "lon": -92.278212}], "meta": {"total_rows": 3442, "total_with_city": 3355, "mapped_sigs": 3189, "unmapped_sigs": 166, "mapped_pct": 95.1, "distinct_cities": 278, "top_unmapped": [["''", 4], ["Hammel", 4], ["Lake", 3], ["Sand Lake", 2], ["Jordan", 2], ["Grant", 2], ["Sterling", 2], ["Hunter", 2], ["Richmond", 2], ["Ellington", 1]]}};
+const pts = DATA.points, meta = DATA.meta;
+const maxC = pts[0].count;
+
+const map = L.map('map', {scrollWheelZoom:true, zoomControl:true})
+  .setView([44.6, -89.7], 7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution:'&copy; OpenStreetMap &copy; CARTO', subdomains:'abcd', maxZoom:19
+}).addTo(map);
+
+// area-proportional radius (radius ~ sqrt(count))
+const R = c => Math.max(4, Math.sqrt(c) * 1.55);
+const markers = {};
+const layer = L.layerGroup().addTo(map);
+
+pts.forEach(p => {
+  const m = L.circleMarker([p.lat, p.lon], {
+    radius:R(p.count), color:'#0a4f50', weight:1, opacity:.55,
+    fillColor:'#0e7c7b', fillOpacity:.42
+  }).addTo(layer);
+  m.bindPopup(`<div class="pc-name">${p.city}</div>
+    <div class="pc-cnt"><b>${p.count.toLocaleString()}</b> signature${p.count!=1?'s':''}</div>`);
+  m.on('mouseover', ()=>m.setStyle({fillOpacity:.68, weight:2}));
+  m.on('mouseout',  ()=>m.setStyle({fillOpacity:.42, weight:1}));
+  markers[p.city] = {marker:m, p};
+});
+
+// fit to all points
+const bounds = L.latLngBounds(pts.map(p=>[p.lat,p.lon]));
+map.fitBounds(bounds.pad(0.08));
+
+// stats
+document.getElementById('s-total').textContent = meta.mapped_sigs.toLocaleString();
+document.getElementById('s-cities').textContent = meta.distinct_cities.toLocaleString();
+document.getElementById('s-top').textContent = pts[0].city;
+
+// ranked list (top 25)
+const list = document.getElementById('list');
+pts.slice(0,25).forEach((p,i)=>{
+  const row = document.createElement('div'); row.className='row';
+  row.innerHTML = `<div class="rank">${i+1}</div>
+    <div class="bar-wrap"><div class="name">${p.city}</div>
+      <div class="bar" style="width:${Math.max(6,p.count/maxC*100)}%"></div></div>
+    <div class="cnt">${p.count}</div>`;
+  row.onclick = ()=>{ map.flyTo([p.lat,p.lon], 11, {duration:.8});
+    setTimeout(()=>markers[p.city].marker.openPopup(), 850); };
+  list.appendChild(row);
+});
+
+// footnote
+document.getElementById('foot').innerHTML =
+  `Showing <b>${meta.mapped_sigs.toLocaleString()}</b> of ${meta.total_with_city.toLocaleString()} `+
+  `signatures with a listed city (${meta.mapped_pct}%). The remaining `+
+  `${meta.unmapped_sigs} use ambiguous township names that can't be placed reliably. `+
+  `Circle area is proportional to signature count.`;
+
+// size legend
+const legend = L.control({position:'bottomright'});
+legend.onAdd = function(){
+  const div = L.DomUtil.create('div','legend');
+  const vals = [10,100,500];
+  let svg = `<div class="lt">Signatures</div><svg width="120" height="92">`;
+  const cx = 28; let baseY = 78;
+  vals.slice().reverse().forEach(v=>{
+    const r = R(v);
+    svg += `<circle cx="${cx}" cy="${baseY-r}" r="${r}" fill="#0e7c7b" fill-opacity=".35" stroke="#0a4f50" stroke-opacity=".6"/>`;
+    svg += `<line x1="${cx}" y1="${baseY-2*r}" x2="92" y2="${baseY-2*r}" stroke="#9aa8a6" stroke-width="1" stroke-dasharray="2 2"/>`;
+    svg += `<text x="96" y="${baseY-2*r+4}" font-size="11" fill="#4a5e66">${v}</text>`;
+  });
+  svg += `</svg>`;
+  div.innerHTML = svg;
+  return div;
+};
+legend.addTo(map);
+</script>
+</body>
+</html>
