@@ -1,144 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Signature Maps</title>
-<style>
-  :root{
-    --ink:#16252b; --ink-soft:#4a5e66; --line:#e3e7e4;
-    --paper:#f5f3ec; --panel:#ffffff;
-    --rod:#0e7c7b; --hong:#6d5bd0; --barn:#c4892f;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    color:var(--ink); background:var(--paper); line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:920px; margin:0 auto; padding:56px 26px 72px;}
-  header{margin-bottom:44px;}
-  .eyebrow{font-size:12px; letter-spacing:.18em; text-transform:uppercase;
-    color:var(--rod); font-weight:600;}
-  h1{font-size:34px; font-weight:700; letter-spacing:-.02em; line-height:1.1; margin:8px 0 12px;}
-  .lede{font-size:15px; color:var(--ink-soft); max-width:620px;}
-  section{margin-top:40px;}
-  h2{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);
-    font-weight:600; padding-bottom:11px; border-bottom:1px solid var(--line); margin-bottom:18px;}
-  .grid{display:grid; gap:14px;}
-  .two{grid-template-columns:1fr 1fr;}
-  a.card{
-    display:block; text-decoration:none; color:inherit; background:var(--panel);
-    border:1px solid var(--line); border-radius:14px; padding:20px 22px;
-    transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
-  }
-  a.card:hover{transform:translateY(-2px); box-shadow:0 8px 24px rgba(22,37,43,.09);
-    border-color:#cfd6d2;}
-  .card-top{display:flex; align-items:center; gap:9px; margin-bottom:7px;}
-  .dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
-  .dots{display:flex; gap:4px;}
-  .ttl{font-size:17px; font-weight:700; letter-spacing:-.01em;}
-  .desc{font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;}
-  .meta{display:flex; align-items:center; justify-content:space-between; gap:12px;}
-  .file{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11.5px;
-    color:#8a979a; background:#f3f5f2; border:1px solid var(--line);
-    padding:3px 8px; border-radius:6px;}
-  .go{font-size:12.5px; font-weight:600; color:var(--rod);}
-  .go::after{content:" \2192"; transition:margin .14s ease;}
-  a.card:hover .go::after{margin-left:3px;}
-  footer{margin-top:48px; padding-top:20px; border-top:1px solid var(--line);
-    font-size:12px; color:var(--ink-soft); line-height:1.6;}
-  @media(max-width:680px){
-    .wrap{padding:40px 18px 56px;} h1{font-size:27px;} .two{grid-template-columns:1fr;}
-  }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="eyebrow">Wisconsin Petition Drives</div>
-    <h1>Signature Maps</h1>
-    <p class="lede">Interactive maps of petition signatures across Wisconsin for three campaigns &mdash;
-      Sara Rodriguez, Francesca Hong, and Mandela Barnes &mdash; by city and by county.</p>
-  </header>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Philip H. Crawford</title>
+    <meta name="description" content="Philip Crawford is a software product manager with experience building SaaS businesses and managing software development teams." />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Philip Crawford</title>
+    <style type="text/css">
+    .polaroid {
+      -webkit-transition: -webkit-transform .15s linear;
+      -webkit-box-shadow: 0 3px 6px rgba(0,0,0,.25);
+      -moz-box-shadow: 0 3px 6px rgba(0,0,0,.25);
+      margin: 0 10px;
+      padding: 5px;
+      background-color: white;
+    }
+    </style>
+  </head>
 
-  <section>
-    <h2>Single-campaign maps</h2>
-    <div class="grid">
-      <a class="card" href="signature_map.html">
-        <div class="card-top"><span class="dot" style="background:var(--rod)"></span>
-          <span class="ttl">Sara Rodriguez &mdash; Signatures by City</span></div>
-        <div class="desc">Every Wisconsin city where Rodriguez collected signatures, with each circle
-          sized by the number of signatures. About 3,200 signatures across 280+ cities.</div>
-        <div class="meta"><span class="file">signature_map.html</span><span class="go">Open map</span></div>
-      </a>
-      <a class="card" href="francesca_hong_signature_map.html">
-        <div class="card-top"><span class="dot" style="background:var(--hong)"></span>
-          <span class="ttl">Francesca Hong &mdash; Signatures by City</span></div>
-        <div class="desc">Hong&rsquo;s signatures by city, each circle sized by count.
-          About 4,400 signatures.</div>
-        <div class="meta"><span class="file">francesca_hong_signature_map.html</span><span class="go">Open map</span></div>
-      </a>
-      <a class="card" href="mandela_barnes_signature_map.html">
-        <div class="card-top"><span class="dot" style="background:var(--barn)"></span>
-          <span class="ttl">Mandela Barnes &mdash; Signatures by City</span></div>
-        <div class="desc">Barnes&rsquo;s signatures by city, each circle sized by count.
-          About 2,300 signatures.</div>
-        <div class="meta"><span class="file">mandela_barnes_signature_map.html</span><span class="go">Open map</span></div>
-      </a>
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Philip Crawford</h1>
+          <h2>Helping teams create software</h2>
+        </header>
+
+      </div>
     </div>
-  </section>
-
-  <section>
-    <h2>Comparison maps</h2>
-    <div class="grid two">
-      <a class="card" href="who_leads_where_map.html">
-        <div class="card-top"><span class="dots">
-          <span class="dot" style="background:var(--rod)"></span>
-          <span class="dot" style="background:var(--hong)"></span>
-          <span class="dot" style="background:var(--barn)"></span></span>
-          <span class="ttl">Who Leads Where</span></div>
-        <div class="desc">Each city colored by whichever campaign drew the largest share of its own
-          signatures there. Tabs toggle between the combined view and each individual campaign.</div>
-        <div class="meta"><span class="file">who_leads_where_map.html</span><span class="go">Open map</span></div>
-      </a>
-      <a class="card" href="over_under_index_map.html">
-        <div class="card-top"><span class="dots">
-          <span class="dot" style="background:var(--rod)"></span>
-          <span class="dot" style="background:var(--hong)"></span>
-          <span class="dot" style="background:var(--barn)"></span></span>
-          <span class="ttl">Over / Under-Index</span></div>
-        <div class="desc">For a selected campaign, each city is colored by whether the campaign drew more
-          (red) or less (blue) than its proportional share relative to the three campaigns combined.
-          Tabs switch between campaigns.</div>
-        <div class="meta"><span class="file">over_under_index_map.html</span><span class="go">Open map</span></div>
-      </a>
-    </div>
-  </section>
-
-  <section>
-    <h2>County maps</h2>
-    <div class="grid two">
-      <a class="card" href="wisconsin_county_choropleth.html">
-        <div class="card-top"><span class="ttl">Signatures by County &mdash; Choropleth</span></div>
-        <div class="desc">Wisconsin&rsquo;s 72 counties shaded by signature volume, with a &ldquo;who
-          leads&rdquo; view and per-campaign views.</div>
-        <div class="meta"><span class="file">wisconsin_county_choropleth.html</span><span class="go">Open map</span></div>
-      </a>
-      <a class="card" href="signatures_by_county_bubbles.html">
-        <div class="card-top"><span class="ttl">Signatures by County &mdash; Bubbles</span></div>
-        <div class="desc">County signature totals shown as proportional circles, with a combined view
-          and per-campaign tabs.</div>
-        <div class="meta"><span class="file">signatures_by_county_bubbles.html</span><span class="go">Open map</span></div>
-      </a>
-    </div>
-  </section>
-
-  <footer>
-    Maps place signatures using the city listed on each signature. Roughly 95&ndash;97% of signatures
-    with a listed city are mapped; the remainder use ambiguous township names that can&rsquo;t be placed
-    to a single location.
-  </footer>
-</div>
-</body>
+  </body>
 </html>
